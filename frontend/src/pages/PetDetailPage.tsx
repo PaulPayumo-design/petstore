@@ -133,6 +133,60 @@ export default function PetDetailPage() {
     }
   }
 
+  const addPhotoField = () => {
+    setEditForm((prev) => {
+      if (!prev) {
+        return prev
+      }
+      return {
+        ...prev,
+        photos: [...prev.photos, { url: '', isPrimary: prev.photos.length === 0 }],
+      }
+    })
+  }
+
+  const updatePhotoUrl = (index: number, url: string) => {
+    setEditForm((prev) => {
+      if (!prev) {
+        return prev
+      }
+      return {
+        ...prev,
+        photos: prev.photos.map((photo, i) => (i === index ? { ...photo, url } : photo)),
+      }
+    })
+  }
+
+  const setPrimaryPhoto = (index: number) => {
+    setEditForm((prev) => {
+      if (!prev) {
+        return prev
+      }
+      return {
+        ...prev,
+        photos: prev.photos.map((photo, i) => ({ ...photo, isPrimary: i === index })),
+      }
+    })
+  }
+
+  const removePhotoField = (index: number) => {
+    setEditForm((prev) => {
+      if (!prev) {
+        return prev
+      }
+
+      const nextPhotos = prev.photos.filter((_, i) => i !== index)
+      if (nextPhotos.length > 0 && !nextPhotos.some((photo) => photo.isPrimary)) {
+        nextPhotos[0] = { ...nextPhotos[0], isPrimary: true }
+      }
+
+      return {
+        ...prev,
+        photos: nextPhotos,
+      }
+    })
+  }
+
   return (
     <>
       <AppBar position="static" color="primary" elevation={1}>
@@ -317,6 +371,38 @@ export default function PetDetailPage() {
                 onChange={(e) => setEditForm((prev) => (prev ? { ...prev, description: e.target.value } : prev))}
                 sx={{ gridColumn: '1 / -1' }}
               />
+              <Box sx={{ gridColumn: '1 / -1' }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Image URLs</Typography>
+                {editForm.photos.map((photo, index) => (
+                  <Box key={index} className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <TextField
+                      label={`Image URL ${index + 1}`}
+                      value={photo.url}
+                      onChange={(e) => updatePhotoUrl(index, e.target.value)}
+                      fullWidth
+                      size="small"
+                    />
+                    <Button
+                      variant={photo.isPrimary ? 'contained' : 'outlined'}
+                      size="small"
+                      onClick={() => setPrimaryPhoto(index)}
+                    >
+                      Primary
+                    </Button>
+                    <Button
+                      color="error"
+                      variant="outlined"
+                      size="small"
+                      onClick={() => removePhotoField(index)}
+                    >
+                      Remove
+                    </Button>
+                  </Box>
+                ))}
+                <Button variant="outlined" size="small" onClick={addPhotoField}>
+                  Add Image URL
+                </Button>
+              </Box>
               <Box sx={{ gridColumn: '1 / -1' }}>
                 <FormControlLabel
                   control={(
