@@ -2,6 +2,7 @@ import { Card, CardMedia, CardContent, Typography, Chip, Button } from '@mui/mat
 import { useNavigate } from 'react-router-dom'
 import { PetSummary } from '../api/petsApi'
 import { useCart } from '../context/CartContext'
+import { formatPeso } from '../utils/currency'
 
 interface PetCardProps {
   pet: PetSummary
@@ -59,7 +60,7 @@ export default function PetCard({ pet }: PetCardProps) {
         <div className="mt-3 flex items-center justify-between">
           {pet.price != null && pet.price > 0 ? (
             <Typography variant="subtitle1" className="font-bold text-brand">
-              ${pet.price.toFixed(2)}
+              {formatPeso(pet.price)}
             </Typography>
           ) : (
             <Typography variant="subtitle2" color="text.secondary">Contact</Typography>

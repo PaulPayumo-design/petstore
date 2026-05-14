@@ -14,6 +14,7 @@ import AddIcon from '@mui/icons-material/Add'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { getPets, PetSummary } from '../api/petsApi'
 import { createPet, updatePet, deletePet, CreatePetPayload } from '../api/adminApi'
+import { formatPeso } from '../utils/currency'
 
 const CATEGORIES = ['DOG', 'CAT', 'BIRD', 'FISH'] as const
 type Category = typeof CATEGORIES[number]
@@ -237,7 +238,7 @@ export default function AdminPage() {
                     </TableCell>
                     <TableCell>{pet.breed}</TableCell>
                     <TableCell>{pet.ageMonths}</TableCell>
-                    <TableCell>{pet.price != null ? `$${pet.price}` : '—'}</TableCell>
+                    <TableCell>{pet.price != null ? formatPeso(pet.price) : '—'}</TableCell>
                     <TableCell>
                       <Chip
                         label={pet.available ? 'Yes' : 'No'}

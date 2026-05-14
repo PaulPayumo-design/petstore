@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
 import {
   Container, AppBar, Toolbar, Typography, Box, Grid, TextField,
-  Button, Card, CardContent, Divider, CircularProgress
+  Button, Card, CardContent, Divider, CircularProgress, Alert
 } from '@mui/material'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import Link from '@mui/material/Link'
 import { useCart } from '../context/CartContext'
 import CartButton from '../components/CartButton'
+import { getPetById } from '../api/petsApi'
+import { updatePet } from '../api/adminApi'
+import { formatPeso } from '../utils/currency'
 
 const PLACEHOLDER = '/placeholder-pet.svg'
 const TAX_RATE = 0.08
@@ -46,6 +49,7 @@ export default function CheckoutPage() {
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [processing, setProcessing] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   useEffect(() => {
     if (items.length === 0) navigate('/', { replace: true })
@@ -73,13 +77,44 @@ export default function CheckoutPage() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
-  const handleSubmit = () => {
+  const markPurchasedPetsUnavailable = async () => {
+    const uniquePetIds = Array.from(new Set(items.map((item) => item.id)))
+
+    await Promise.all(
+      uniquePetIds.map(async (petId) => {
+        const pet = await getPetById(petId)
+        if (!pet.available) {
+          return
+        }
+
+        await updatePet(pet.id, {
+          name: pet.name,
+          category: pet.category,
+          breed: pet.breed,
+          ageMonths: pet.ageMonths,
+          description: pet.description,
+          price: pet.price,
+          available: false,
+          photos: pet.photos,
+        })
+      })
+    )
+  }
+
+  const handleSubmit = async () => {
     if (!validate()) return
+    setCheckoutError(null)
     setProcessing(true)
-    setTimeout(() => {
-      setProcessing(false)
+
+    try {
+      await markPurchasedPetsUnavailable()
+      await new Promise((resolve) => setTimeout(resolve, 1200))
       navigate('/order-success')
-    }, 2000)
+    } catch {
+      setCheckoutError('Could not complete checkout. Please try again.')
+    } finally {
+      setProcessing(false)
+    }
   }
 
   const orderSummary = (
@@ -100,26 +135,26 @@ export default function CheckoutPage() {
               <Typography variant="caption" color="text.secondary">Qty: {item.quantity}</Typography>
             </Box>
             <Typography variant="body2" className="font-semibold whitespace-nowrap">
-              ${(item.price * item.quantity).toFixed(2)}
+              {formatPeso(item.price * item.quantity)}
             </Typography>
           </Box>
         ))}
         <Divider />
         <Box className="flex justify-between">
           <Typography variant="body2">Subtotal</Typography>
-          <Typography variant="body2">${subtotal.toFixed(2)}</Typography>
+          <Typography variant="body2">{formatPeso(subtotal)}</Typography>
         </Box>
         <Box className="flex justify-between">
           <Typography variant="body2">Tax (8%)</Typography>
-          <Typography variant="body2">${tax.toFixed(2)}</Typography>
+          <Typography variant="body2">{formatPeso(tax)}</Typography>
         </Box>
         <Divider />
         <Box className="flex justify-between">
           <Typography variant="subtitle1" className="font-bold">Total</Typography>
-          <Typography variant="subtitle1" className="font-bold text-green-700">${total.toFixed(2)}</Typography>
+          <Typography variant="subtitle1" className="font-bold text-green-700">{formatPeso(total)}</Typography>
         </Box>
         <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-          <Button variant="contained" fullWidth size="large" disabled>
+          <Button variant="contained" fullWidth size="large" onClick={handleSubmit} disabled={processing}>
             Place Order
           </Button>
         </Box>
@@ -151,6 +186,9 @@ export default function CheckoutPage() {
       )}
 
       <Container maxWidth="lg" className="py-8">
+        {checkoutError && (
+          <Alert severity="error" className="mb-4">{checkoutError}</Alert>
+        )}
         <Breadcrumbs className="mb-6">
           <Link component={RouterLink} to="/" underline="hover" color="inherit">Catalogue</Link>
           <Typography color="text.primary">Checkout</Typography>

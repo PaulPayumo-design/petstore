@@ -1,5 +1,5 @@
-import { Container, Typography, Box, Pagination, AppBar, Toolbar, Grid } from '@mui/material'
-import { useSearchParams } from 'react-router-dom'
+import { Container, Typography, Box, Pagination, AppBar, Toolbar, Grid, Button } from '@mui/material'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { usePets } from '../hooks/usePets'
 import PetGrid from '../components/PetGrid'
 import PetCardSkeleton from '../components/PetCardSkeleton'
@@ -9,6 +9,7 @@ import ErrorState from '../components/ErrorState'
 import CartButton from '../components/CartButton'
 
 export default function CataloguePage() {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Sanitize: strip any category values that aren't valid
@@ -33,6 +34,9 @@ export default function CataloguePage() {
           <Typography variant="h6" className="font-bold tracking-wide">
             🐾 Petstore
           </Typography>
+          <Button color="inherit" onClick={() => navigate('/admin')} sx={{ ml: 'auto', mr: 1 }}>
+            Manage Pets
+          </Button>
           <CartButton />
         </Toolbar>
       </AppBar>
