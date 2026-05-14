@@ -9,13 +9,6 @@ interface PetCardProps {
 
 const PLACEHOLDER = '/placeholder-pet.svg'
 
-const categoryColors: Record<string, 'primary' | 'secondary' | 'success' | 'info'> = {
-  DOG: 'primary',
-  CAT: 'secondary',
-  BIRD: 'success',
-  FISH: 'info',
-}
-
 const categoryEmoji: Record<string, string> = {
   DOG: '🐶',
   CAT: '🐱',
@@ -29,51 +22,57 @@ export default function PetCard({ pet }: PetCardProps) {
 
   return (
     <Card
-      className="flex flex-col h-full cursor-pointer hover:shadow-lg transition-shadow duration-200"
+      className="relative card-3d overflow-hidden h-full cursor-pointer"
       onClick={() => navigate(`/pets/${pet.id}`)}
       role="article"
       aria-label={pet.name}
     >
-      <CardMedia
-        component="img"
-        height="200"
-        image={pet.primaryPhotoUrl ?? PLACEHOLDER}
-        alt={pet.name}
-        className="object-cover h-48"
-        onError={(e) => { (e.currentTarget as HTMLImageElement).src = PLACEHOLDER }}
-      />
-      <CardContent className="flex flex-col flex-1 gap-2">
-        <div className="flex items-center justify-between">
-          <Typography variant="h6" component="h2" className="font-semibold">
-            {pet.name}
-          </Typography>
-          <Chip
-            label={`${categoryEmoji[pet.category]} ${pet.category}`}
-            color={categoryColors[pet.category] ?? 'default'}
-            size="small"
-          />
+      <div className="w-full h-48 bg-gradient-to-b from-white/30 to-gray-100">
+        <CardMedia
+          component="img"
+          height="200"
+          image={pet.primaryPhotoUrl ?? PLACEHOLDER}
+          alt={pet.name}
+          className="object-cover w-full h-48"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = PLACEHOLDER }}
+        />
+      </div>
+      <CardContent className="flex flex-col gap-2">
+        <div className="flex items-start justify-between">
+          <div>
+            <Typography variant="h6" component="h2" className="font-semibold">
+              {pet.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {pet.breed} · {pet.ageMonths < 12
+                ? `${pet.ageMonths}mo`
+                : `${Math.floor(pet.ageMonths / 12)}yr ${pet.ageMonths % 12}mo`}
+            </Typography>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-gray-500">{categoryEmoji[pet.category]}</div>
+            <Chip label={pet.available ? 'Available' : 'Unavailable'} size="small" color={pet.available ? 'success' : 'default'} />
+          </div>
         </div>
-        <Typography variant="body2" color="text.secondary">
-          {pet.breed} · {pet.ageMonths < 12
-            ? `${pet.ageMonths}mo`
-            : `${Math.floor(pet.ageMonths / 12)}yr ${pet.ageMonths % 12}mo`}
-        </Typography>
-        <div className="flex items-center justify-between mt-auto pt-2">
+
+
+        <div className="mt-3 flex items-center justify-between">
           {pet.price != null && pet.price > 0 ? (
-            <Typography variant="subtitle1" className="font-bold text-green-700">
+            <Typography variant="subtitle1" className="font-bold text-brand">
               ${pet.price.toFixed(2)}
             </Typography>
           ) : (
-            <Typography variant="subtitle2" color="text.secondary">Contact us</Typography>
+            <Typography variant="subtitle2" color="text.secondary">Contact</Typography>
           )}
           <Button
             variant="contained"
             size="small"
+            className="btn-brand"
             disabled={!pet.available}
             onClick={(e) => { e.stopPropagation(); addItem(pet) }}
             aria-label={pet.available ? `Add ${pet.name} to cart` : `${pet.name} unavailable`}
           >
-            {pet.available ? 'Add to Cart' : 'Unavailable'}
+            {pet.available ? 'Add' : 'N/A'}
           </Button>
         </div>
       </CardContent>
